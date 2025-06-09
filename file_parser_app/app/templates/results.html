@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Processed Data Results - {{ filename }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; box-shadow: 0 2px 3px #ccc; }
+        th, td { border: 1px solid #ddd; padding: 10px 12px; text-align: left; vertical-align: top;}
+        th { background-color: #f0f0f0; color: #333; text-transform: capitalize; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .no-data { color: #777; font-style: italic; }
+        .container { max-width: 1200px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; }
+        .back-link { margin-top: 20px; display: inline-block; padding: 8px 15px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; }
+        .back-link:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Results for: {{ filename }}</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul class=flashes>
+            {% for category, message in messages %}
+              <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+
+        {% if data and data is iterable and data|length > 0 %}
+            <p>Number of items processed and displayed: {{ data|length }}</p>
+            <table>
+                <thead>
+                    <tr>
+                        {% if data[0] %} {# Get headers from the first item's keys #}
+                            {% for key in data[0].keys() %}
+                                <th>{{ key.replace('_', ' ')|title }}</th>
+                            {% endfor %}
+                        {% else %}
+                            <th>Data</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in data %}
+                        <tr>
+                            {% if data[0] %}
+                                {% for key in data[0].keys() %} {# Iterate using keys from the first item for consistent column order #}
+                                    <td>{{ item.get(key) if item.get(key) is not none else '' }}</td>
+                                {% endfor %}
+                            {% else %} {# Should not happen if data[0] exists #}
+                                <td>{{ item }}</td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p class="no-data">No data to display. The file might have been empty, not parsable, or all items were filtered out during normalization.</p>
+        {% endif %}
+        <a href="{{ url_for('routes.index') }}" class="back-link" style="margin-right: 10px;">Upload Another File</a>
+        <a href="{{ url_for('routes.browse_data') }}" class="back-link" style="background-color: #17a2b8;">Browse All Data</a>
+    </div>
+</body>
+</html>

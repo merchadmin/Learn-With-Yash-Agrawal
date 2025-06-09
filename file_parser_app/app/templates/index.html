@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Parser App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Upload File for Parsing</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul class="flashes">
+            {% for category, message in messages %}
+              <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('routes.upload_file') }}" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="file">Choose file:</label>
+                <input type="file" name="file" id="file" required>
+            </div>
+            <div class="form-group">
+                <label for="data_fields">Desired output field names (comma-separated, e.g., asin, title, brand, main_image_url, price):</label>
+                <input type="text" name="data_fields" id="data_fields" value="asin,title,brand" placeholder="e.g., asin,title,brand,main_image_url,price" style="width: 500px;">
+                <small>These are the names you want for your columns in the database.</small>
+            </div>
+            <button type="submit" class="btn">Upload and Process</button>
+        </form>
+        <hr style="margin-top: 30px; margin-bottom: 20px;">
+        <p style="text-align: center;"><a href="{{ url_for('routes.browse_data') }}">Browse All Stored Data</a></p>
+    </div>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

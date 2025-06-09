@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Browse All Extracted Data</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; }
+        .container { max-width: 90%; margin: 20px auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.05); }
+        h1 { color: #333; text-align: center; margin-bottom: 25px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        th, td { border: 1px solid #e0e0e0; padding: 12px 15px; text-align: left; vertical-align: top; }
+        th { background-color: #f0f2f5; color: #333; text-transform: capitalize; font-weight: 600; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        tr:hover { background-color: #f1f1f1; }
+        .no-data { color: #555; font-style: italic; text-align: center; padding: 20px; }
+        .info-bar { background-color: #e9ecef; padding: 10px 15px; border-radius: 4px; margin-bottom: 20px; text-align: center; }
+        .pagination { margin-top: 30px; text-align: center; }
+        .pagination a, .pagination span {
+            display: inline-block;
+            padding: 8px 16px;
+            margin: 0 4px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #007bff;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .pagination a:hover { background-color: #007bff; color: white; }
+        .pagination .current-page { background-color: #007bff; color: white; border-color: #007bff; }
+        .pagination .disabled { color: #aaa; border-color: #ddd; pointer-events: none; }
+        .back-link-container { margin-top: 30px; text-align: center; }
+        .back-link { display: inline-block; padding: 10px 20px; background-color: #6c757d; color: white; text-decoration: none; border-radius: 4px; }
+        .back-link:hover { background-color: #5a6268; }
+        .flashes { list-style-type: none; padding: 0; margin-bottom: 20px; }
+        .flashes li { padding: 12px; margin-bottom: 10px; border-radius: 5px; text-align: center; }
+        .flashes .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .flashes .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .flashes .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .flashes .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Browse All Extracted Data</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        {% if items_list and items_list|length > 0 %}
+            <div class="info-bar">
+                Displaying items {{ (page - 1) * per_page + 1 }} - {{ min(page * per_page, total_items) }} of {{ total_items }} total items.
+            </div>
+
+            {% set all_keys = [] %}
+            {% for item in items_list %}
+                {% for key in item.keys() %}
+                    {% if key not in all_keys %}{% set _ = all_keys.append(key) %}{% endif %}
+                {% endfor %}
+            {% endfor %}
+            {% set sorted_keys = all_keys|sort %}
+
+            <table>
+                <thead>
+                    <tr>
+                        {% for key in sorted_keys %}
+                            <th>{{ key.replace('_', ' ')|title }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items_list %}
+                    <tr>
+                        {% for key in sorted_keys %}
+                        <td>{{ item.get(key, '') if item.get(key, '') is not none else '' }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% if total_pages > 1 %}
+            <div class="pagination">
+                <a href="{{ url_for('routes.browse_data', page=1) }}" class="{{ 'disabled' if page == 1 else '' }}">First</a>
+                <a href="{{ url_for('routes.browse_data', page=page-1) }}" class="{{ 'disabled' if page == 1 else '' }}">Previous</a>
+
+                <span class="current-page">Page {{ page }} of {{ total_pages }}</span>
+
+                <a href="{{ url_for('routes.browse_data', page=page+1) }}" class="{{ 'disabled' if page == total_pages else '' }}">Next</a>
+                <a href="{{ url_for('routes.browse_data', page=total_pages) }}" class="{{ 'disabled' if page == total_pages else '' }}">Last</a>
+            </div>
+            {% endif %}
+
+        {% else %}
+            <p class="no-data">No data found in the database, or the current page has no items.</p>
+        {% endif %}
+
+        <div class="back-link-container">
+            <a href="{{ url_for('routes.index') }}" class="back-link">Back to Upload Page</a>
+        </div>
+    </div>
+</body>
+</html>
